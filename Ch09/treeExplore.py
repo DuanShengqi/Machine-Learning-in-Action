@@ -2,7 +2,6 @@ from numpy import *
 
 from tkinter import *
 import regTrees
-
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -40,8 +39,10 @@ def getInputs():
     return tolN,tolS
 
 def drawNewTree():
+    regTrees.leaf_num = 0
     tolN,tolS = getInputs()#get values from Entry boxes
     reDraw(tolS,tolN)
+    print(regTrees.leaf_num)
     
 root=Tk()
 
@@ -63,8 +64,20 @@ chkBtnVar = IntVar()
 chkBtn = Checkbutton(root, text="Model Tree", variable = chkBtnVar)
 chkBtn.grid(row=3, column=0, columnspan=2)
 
-reDraw.rawDat = mat(regTrees.loadDataSet(r'C:\Users\Administrator\Desktop\机器学习\SourceCode\machinelearninginaction\Ch09\sine.txt'))
+reDraw.rawDat = mat(regTrees.loadDataSet('./Ch09/sine.txt'))
 reDraw.testDat = arange(min(reDraw.rawDat[:,0]),max(reDraw.rawDat[:,0]),0.01)
 reDraw(1.0, 10)
                
 root.mainloop()
+
+'''
+
+关于最后生成的sinx有大约八条线段组成，但是显示叶子节点只有6个的问题：
+由于CART执行的是二元切分，因此他不是连续的进行切分，因此在预测的时候，也是一些离散点的预测，
+因此也是一些点的连线组成的最后的图，所以图像中所看到的线段并不是模型树得到的函数
+
+'''
+
+
+
+

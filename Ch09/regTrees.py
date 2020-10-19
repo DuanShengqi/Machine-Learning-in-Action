@@ -4,6 +4,9 @@ Tree-Based Regression Methods
 @author: Peter Harrington
 '''
 from numpy import *
+import  matplotlib.pyplot as plt
+
+leaf_num = 0
 
 def loadDataSet(fileName):      #general function to parse tab -delimited floats
     dataMat = []                #assume last column is target value
@@ -46,28 +49,32 @@ def modelErr(dataSet):
     return sum(power(Y - yHat,2))
 
 def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1,4)):
+    global leaf_num
     tolS = ops[0]; tolN = ops[1]
     #if all the target variables are the same value: quit and return value
     if len(set(dataSet[:,-1].T.tolist()[0])) == 1: #exit cond 1
+        leaf_num+=1
         return None, leafType(dataSet)
     m,n = shape(dataSet)
     #the choice of the best feature is driven by Reduction in RSS error from mean
     S = errType(dataSet)
     bestS = inf; bestIndex = 0; bestValue = 0
     for featIndex in range(n-1):
-        for splitVal in set(dataSet[:,featIndex].A[0]): #由于哈希的问题，在set()时需要进行一些形式的转换
+        for splitVal in set(dataSet[:,featIndex].T.tolist()[0]): #由于哈希的问题，在set()时需要进行一些形式的转换
             mat0, mat1 = binSplitDataSet(dataSet, featIndex, splitVal)
             if (shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN): continue
             newS = errType(mat0) + errType(mat1)
-            if newS < bestS: 
+            if newS < bestS:
                 bestIndex = featIndex
                 bestValue = splitVal
                 bestS = newS
     #if the decrease (S-bestS) is less than a threshold don't do the split
     if (S - bestS) < tolS: 
+        leaf_num+=1
         return None, leafType(dataSet) #exit cond 2
     mat0, mat1 = binSplitDataSet(dataSet, bestIndex, bestValue)
     if (shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN):  #exit cond 3
+        leaf_num+=1
         return None, leafType(dataSet)
     return bestIndex,bestValue#returns the best feature to split on
                               #and the value used for that split
@@ -121,7 +128,7 @@ def modelTreeEval(model, inDat):
 
 def treeForeCast(tree, inData, modelEval=regTreeEval):
     if not isTree(tree): return modelEval(tree, inData)
-    if inData[tree['spInd']] > tree['spVal']:
+    if inData[tree['spInd']] > tree['spVal']  :
         if isTree(tree['left']): return treeForeCast(tree['left'], inData, modelEval)
         else: return modelEval(tree['left'], inData)
     else:
@@ -136,12 +143,20 @@ def createForeCast(tree, testData, modelEval=regTreeEval):
     return yHat
 
 
+# testmat = mat(eye(4))
+# mat0,mat1 = binSplitDataSet(testmat,1,0.5)
+# print("finish")
 
-# dataset = loadDataSet(r'C:\Users\Administrator\Desktop\机器学习\SourceCode\machinelearninginaction\Ch09\ex0.txt')
+# dataset = array(loadDataSet('./Ch09/sine.txt'))
 # mydat = mat(dataset)
-# y = createTree(mydat)
+# y = createTree(mydat,leafType=modelLeaf, errType=modelErr, ops=(1,10))
 # print(y)
+# print(leaf_num)
 
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# ax.scatter(mydat[:,0].A,mydat[:,1].A)
+# plt.show()
 
 
 
